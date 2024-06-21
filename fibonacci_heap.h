@@ -3,7 +3,6 @@
 
 namespace algo
 {
-
     class fibonacci_heap
     {
     public:
