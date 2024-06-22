@@ -1,9 +1,12 @@
 #ifndef RED_BLACK_TREE_H
 #define RED_BLACK_TREE_H
 
+#include <cmath>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <queue>
+#include <ranges>
 
 namespace algo
 {
@@ -14,12 +17,18 @@ namespace algo
         max_colors,
     };
     
-    template<typename Type, typename Key>
+    template<typename Key, typename Type>
     struct red_black_tree_node
     {   
         red_black_tree_node(const node_color color, const Key& key, const Type& value)
             : color{color}, key{key}
             , value{value}
+        {
+        }
+        red_black_tree_node(red_black_tree_node* left, red_black_tree_node* right, red_black_tree_node* parent, const node_color color, const Key& key, const Type& value)
+            : left{left}, right{right}
+            , parent{parent}, color{color}
+            , key{key}, value{value}
         {
         }
         red_black_tree_node* left;
@@ -30,12 +39,12 @@ namespace algo
         Type value;
     };
 
-    template<typename Type, typename Key, typename Compare>
+    template<typename Key, typename Type, typename Compare = std::less<Key>>
     class red_black_tree
     {
     public:
         
-        using node_type = red_black_tree_node<Type, Key>;
+        using node_type = red_black_tree_node<Key, Type>;
         using key_compare = Compare;
 
         red_black_tree()
@@ -56,13 +65,13 @@ namespace algo
             node_type** position{&root};
             while(*position) 
             {
-                if(key_compare{}(key, position->value))
+                if(key_compare{}(key, (*position)->value))
                 {
-                    position = &position->left;
+                    position = &(*position)->left;
                 }
-                else if(key_compare{}(position->value, key))
+                else if(key_compare{}((*position)->value, key))
                 {
-                    position = &position->right;
+                    position = &(*position)->right;
                 }
                 else 
                 {
@@ -71,13 +80,14 @@ namespace algo
             }
             if(*position == nullptr)
             {
-                insert_cases(position);
+                insert_cases(position, key, value);
             }
         }
 
         void print()
         {
-            std::queue<node_type*> tree{root};
+            std::queue<node_type*> tree{};
+            tree.push(root);
             for(auto i{tree.front()}; !tree.empty(); ++i)
             {
                 print_node(*tree.front());
@@ -95,8 +105,12 @@ namespace algo
 
     private:    
         
-        void insert_cases(node_type** position)
+        void insert_cases(node_type** position, const Key& key, const Type& value)
         {
+            if(position == &root)
+            {
+                root = new node_type{nullptr, nullptr, nullptr, node_color::red, key, value};
+            }
         }
         
         void print_node(const node_type& node)
