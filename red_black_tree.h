@@ -123,12 +123,18 @@ namespace algo
                 if(parent->parent)
                 {
                     node_type* uncle{find_uncle(parent)};
-                    if(does_uncle_red(uncle))
+                    if(is_uncle_red(uncle))
                     {
                         case1_insert(parent, uncle);
                     }
                     else
                     {
+                        if(is_left_child(*position) == is_left_child(parent))
+                        {
+                        }
+                        else 
+                        {
+                        }
                     }
                 }
             }
@@ -160,9 +166,16 @@ namespace algo
             }
         }
         
+        void left_rotation(node_type* node)
+        {   
+            node_type* parent{node->parent};
+            node_type* right_child{node->right};
+            node_type* remember{right_child->left};
+        }
+        
         node_type* find_uncle(node_type* parent)
         {
-            if(parent->parent->left == parent)
+            if(is_left_child(parent))
             {
                 return parent->parent->right;
             }
@@ -172,7 +185,12 @@ namespace algo
             }
         }
         
-        constexpr bool does_uncle_red(node_type* uncle)
+        constexpr bool is_left_child(node_type* node)
+        {
+            return node->parent->left == node;
+        }
+        
+        constexpr bool is_uncle_red(node_type* uncle)
         {
             if(uncle)
             {
