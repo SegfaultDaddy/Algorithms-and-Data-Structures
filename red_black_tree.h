@@ -12,8 +12,8 @@ namespace algo
 {
     enum class node_color : std::uint8_t
     {
-        black,
         red,
+        black,
         max_colors,
     };
     
@@ -125,11 +125,38 @@ namespace algo
                     node_type* uncle{find_uncle(parent)};
                     if(does_uncle_red(uncle))
                     {
+                        case1_insert(parent, uncle);
                     }
                     else
                     {
                     }
                 }
+            }
+        }
+
+        constexpr void case1_insert(node_type* parent, node_type* uncle)
+        {
+            recolor(parent);
+            recolor(uncle);
+            recolor(parent->parent);
+            if(root->color == node_color::red)
+            {
+                recolor(root);
+            }
+        }
+
+        constexpr void recolor(node_type* node)
+        {
+            switch(node->color)
+            {
+            case node_color::red:
+                node->color = node_color::black;
+                break;
+            case node_color::black:
+                node->color = node_color::red;
+                break;
+            default:
+                break;
             }
         }
         
@@ -159,7 +186,7 @@ namespace algo
         
         void print_node(node_type* node)
         {
-            std::cout << node << '|' << node->key << '~' << node->value << '|' << node->parent << '~' << node->left << '~' << node->right << '\n';
+            std::cout << node << '|' << node->key << '~' << node->value << '~' << static_cast<std::uint32_t>(node->color) << '|' << node->parent << '~' << node->left << '~' << node->right << '\n';
         }
 
         node_type* root;
