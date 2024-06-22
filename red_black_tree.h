@@ -51,26 +51,28 @@ namespace algo
 
         red_black_tree& operator=(red_black_tree&& that) = delete;
 
-        node_type** find(const Key& key)
-        {
-            for(node_type* element{root}; element != nullptr; )
-            {
-                if(key_compare{}(key, element->key))
-                {
-                }
-                else if(key_compare{}(element->key, key))
-                {
-                }
-                else
-                {
-                    return &element;
-                }
-            }
-        }
-
         void insert(const Key& key, const Type& value)
         {
-
+            node_type** position{&root};
+            while(*position) 
+            {
+                if(key_compare{}(key, position->value))
+                {
+                    position = &position->left;
+                }
+                else if(key_compare{}(position->value, key))
+                {
+                    position = &position->right;
+                }
+                else 
+                {
+                    break;
+                }
+            }
+            if(*position == nullptr)
+            {
+                insert_cases(position);
+            }
         }
 
         void print()
@@ -92,7 +94,11 @@ namespace algo
         }
 
     private:    
-    
+        
+        void insert_cases(node_type** position)
+        {
+        }
+        
         void print_node(const node_type& node)
         {
             std::cout << "Node: " << &node << '\n';
