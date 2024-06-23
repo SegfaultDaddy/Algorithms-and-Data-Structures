@@ -86,7 +86,8 @@ namespace algo
             }
             if(*position == nullptr)
             {
-                insert_and_fix(position, parent, key, value);
+                *position = new node_type{parent, nullptr, nullptr, node_color::red, key, value};
+                insert_fixup(*position, parent, key, value);
             }
         }
 
@@ -111,32 +112,40 @@ namespace algo
 
     private:    
         
-        void insert_and_fix(node_type** position, node_type* parent, const Key& key, const Type& value)
+        void insert_fixup(node_type* position, node_type* parent, const Key& key, const Type& value)
         {
-            if(position == &root)
+            if(position == root)
             {
-                root = new node_type{nullptr, nullptr, nullptr, node_color::black, key, value};
+                case0_insert();               
             }
             else             
             {
-                *position = new node_type{parent, nullptr, nullptr, node_color::red, key, value};
                 if(parent->parent)
                 {
-                    node_type* uncle{find_uncle(parent)};
+                    node_type* uncle{find_uncle(position)};
                     if(is_uncle_red(uncle))
                     {
                         case1_insert(parent, uncle);
                     }
                     else
                     {
-                        if(is_left_child(*position) == is_left_child(parent))
+                        if(is_left_child(position) != is_left_child(parent))
                         {
+                            case2_insert(parent);
                         }
                         else 
                         {
                         }
                     }
                 }
+            }
+        }
+
+        constexpr void case0_insert()
+        {       
+            if(root->color == node_color::red)
+            {
+                root->color = node_color::black;
             }
         }
 
@@ -148,6 +157,60 @@ namespace algo
             if(root->color == node_color::red)
             {
                 recolor(root);
+            }
+        }
+        
+        constexpr void case2_insert(node_type* parent)
+        {
+            if(is_left_child(parent))
+            {
+                left_rotation(parent);
+            }
+            else 
+            {
+                right_rotation(parent);
+            }
+        }
+        
+        constexpr void left_rotation(node_type* node)
+        {   
+            node_type* right_child{node->right};
+            right_child->parent = node->parent;
+            if(is_left_child(node))
+            {
+                right_child->parent->left = right_child;
+            }
+            else               
+            {
+                right_child->parent->right = right_child;
+            }
+            node->right = right_child->left;
+            node->parent = right_child;
+            right_child->left = node;
+            if(node->right)
+            {
+                node->right->parent = node;
+            }
+        }
+    
+        constexpr void right_rotation(node_type* node)
+        {   
+            node_type* left_child{node->left};
+            left_child->parent = node->parent;
+            if(is_left_child(node))
+            {
+                left_child->parent->left = left_child;
+            }
+            else               
+            {
+                left_child->parent->right = left_child;
+            }
+            node->left = left_child->right;
+            node->parent = left_child;
+            left_child->right = node;
+            if(node->left)
+            {
+                node->left->parent = node;
             }
         }
 
@@ -166,22 +229,15 @@ namespace algo
             }
         }
         
-        void left_rotation(node_type* node)
-        {   
-            node_type* parent{node->parent};
-            node_type* right_child{node->right};
-            node_type* remember{right_child->left};
-        }
-        
-        node_type* find_uncle(node_type* parent)
+        constexpr node_type* find_uncle(node_type* node)
         {
-            if(is_left_child(parent))
+            if(is_left_child(node->parent))
             {
-                return parent->parent->right;
+                return node->parent->parent->right;
             }
             else  
             {
-                return parent->parent->left;   
+                return node->parent->parent->left;   
             }
         }
         
