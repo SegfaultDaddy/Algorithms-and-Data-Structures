@@ -71,13 +71,13 @@ namespace algo
             while(*position) 
             {
                 parent = *position;
-                if(key_compare{}(key, (*position)->value))
-                {
-                    position = &(*position)->right;
-                }
-                else if(key_compare{}((*position)->value, key))
+                if(key_compare{}(key, (*position)->key))
                 {
                     position = &(*position)->left;
+                }
+                else if(key_compare{}((*position)->key, key))
+                {
+                    position = &(*position)->right;
                 }
                 else 
                 {
@@ -114,7 +114,7 @@ namespace algo
         
         void insert_fixup(node_type* position)
         {
-            while (is_node_red(position->parent)) 
+            while(is_node_red(position->parent)) 
             {
                 if(position->parent->parent)
                 {
@@ -128,8 +128,9 @@ namespace algo
                     {
                         if(is_left_child(position) != is_left_child(position->parent))
                         {
+                            node_type* remember{position->parent};
                             case2_insert(position);
-                            position = position->parent->parent;
+                            position = remember;
                         }
                         else 
                         {
