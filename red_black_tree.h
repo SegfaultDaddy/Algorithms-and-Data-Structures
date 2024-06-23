@@ -73,11 +73,11 @@ namespace algo
                 parent = *position;
                 if(key_compare{}(key, (*position)->value))
                 {
-                    position = &(*position)->left;
+                    position = &(*position)->right;
                 }
                 else if(key_compare{}((*position)->value, key))
                 {
-                    position = &(*position)->right;
+                    position = &(*position)->left;
                 }
                 else 
                 {
@@ -87,7 +87,7 @@ namespace algo
             if(*position == nullptr)
             {
                 *position = new node_type{parent, nullptr, nullptr, node_color::red, key, value};
-                insert_fixup(*position, parent, key, value);
+                insert_fixup(*position);
             }
         }
 
@@ -109,41 +109,36 @@ namespace algo
                 tree.pop();
             }
         }
-
+        
     private:    
         
-        void insert_fixup(node_type* position, node_type* parent, const Key& key, const Type& value)
+        void insert_fixup(node_type* position)
         {
-            if(position == root)
+            while (is_node_red(position->parent)) 
             {
-                case0_insert();               
-            }
-            else             
-            {
-                if(parent->parent)
+                if(position->parent->parent)
                 {
                     node_type* uncle{find_uncle(position)};
-                    if(is_uncle_red(uncle))
+                    if(is_node_red(uncle))
                     {
-                        case1_insert(parent, uncle);
+                        case1_insert(position->parent, uncle);
+                        position = position->parent->parent;
                     }
                     else
                     {
-                        if(is_left_child(position) != is_left_child(parent))
+                        if(is_left_child(position) != is_left_child(position->parent))
                         {
-                            case2_insert(parent);
+                            case2_insert(position);
+                            position = position->parent->parent;
                         }
                         else 
                         {
+                            case3_insert(position);
                         }
                     }
                 }
             }
-        }
-
-        constexpr void case0_insert()
-        {       
-            if(root->color == node_color::red)
+            if(is_node_red(root))
             {
                 root->color = node_color::black;
             }
@@ -160,15 +155,29 @@ namespace algo
             }
         }
         
-        constexpr void case2_insert(node_type* parent)
+        constexpr void case2_insert(node_type* node)
         {
-            if(is_left_child(parent))
+            if(is_left_child(node))
             {
-                left_rotation(parent);
+                right_rotation(node->parent);
             }
             else 
             {
-                right_rotation(parent);
+                left_rotation(node->parent);
+            }
+        }
+
+        constexpr void case3_insert(node_type* node)
+        {
+            recolor(node->parent);
+            recolor(node->parent->parent);
+            if(is_left_child(node->parent))
+            {
+                right_rotation(node->parent->parent);
+            }
+            else 
+            {
+                left_rotation(node->parent->parent);
             }
         }
         
@@ -176,13 +185,16 @@ namespace algo
         {   
             node_type* right_child{node->right};
             right_child->parent = node->parent;
-            if(is_left_child(node))
+            if(right_child->parent)
             {
-                right_child->parent->left = right_child;
-            }
-            else               
-            {
-                right_child->parent->right = right_child;
+                if(is_left_child(node))
+                {
+                    right_child->parent->left = right_child;
+                }
+                else               
+                {
+                    right_child->parent->right = right_child;
+                }
             }
             node->right = right_child->left;
             node->parent = right_child;
@@ -191,19 +203,26 @@ namespace algo
             {
                 node->right->parent = node;
             }
+            if(node == root)
+            {
+                root = right_child;
+            }
         }
     
         constexpr void right_rotation(node_type* node)
         {   
             node_type* left_child{node->left};
             left_child->parent = node->parent;
-            if(is_left_child(node))
+            if(left_child->parent)
             {
-                left_child->parent->left = left_child;
-            }
-            else               
-            {
-                left_child->parent->right = left_child;
+                if(is_left_child(node))
+                {
+                    left_child->parent->left = left_child;
+                }
+                else               
+                {
+                    left_child->parent->right = left_child;
+                }
             }
             node->left = left_child->right;
             node->parent = left_child;
@@ -211,6 +230,10 @@ namespace algo
             if(node->left)
             {
                 node->left->parent = node;
+            }
+            if(node == root)
+            {
+                root = left_child;
             }
         }
 
@@ -246,11 +269,11 @@ namespace algo
             return node->parent->left == node;
         }
         
-        constexpr bool is_uncle_red(node_type* uncle)
+        constexpr bool is_node_red(node_type* node)
         {
-            if(uncle)
+            if(node)
             {
-                if(uncle->color == node_color::red)
+                if(node->color == node_color::red)
                 {
                      return true;
                 }
