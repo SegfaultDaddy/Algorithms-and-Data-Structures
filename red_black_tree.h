@@ -21,13 +21,13 @@ namespace algo
     struct red_black_tree_node
     {
         
-        red_black_tree_node(const node_color color, const Key& key, const Type& value)
+        constexpr red_black_tree_node(const node_color color, const Key& key, const Type& value)
             : color{color}, key{key}
             , value{value}
         {
         }
         
-        red_black_tree_node(red_black_tree_node* parent, red_black_tree_node* left, red_black_tree_node* right, const node_color color, const Key& key, const Type& value)
+        constexpr red_black_tree_node(red_black_tree_node* parent, red_black_tree_node* left, red_black_tree_node* right, const node_color color, const Key& key, const Type& value)
             : parent{parent}, left{left}
             , right{right}, color{color}
             , key{key}, value{value}
@@ -64,6 +64,10 @@ namespace algo
 
         red_black_tree& operator=(red_black_tree&& that) = delete;
 
+        void remove()
+        {
+        }
+        
         void insert(const Key& key, const Type& value)
         {
             node_type** position{&root};
