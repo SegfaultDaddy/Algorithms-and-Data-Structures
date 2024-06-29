@@ -64,8 +64,34 @@ namespace algo
 
         red_black_tree& operator=(red_black_tree&& that) = delete;
 
-        void remove()
+        void remove(const Key& key)
         {
+            node_type* found{find(key)};
+            if(found == nullptr)
+            {
+                return;
+            }
+        }
+        
+        node_type* find(const Key& key)
+        {
+            node_type* position{root};
+            while(position) 
+            {
+                if(key_compare{}(key, position->key))
+                {
+                    position = position->left;
+                }
+                else if(key_compare{}(position->key, key))
+                {
+                    position = position->right;
+                }
+                else 
+                {
+                    break;
+                }
+            }
+            return position;
         }
         
         void insert(const Key& key, const Type& value)
