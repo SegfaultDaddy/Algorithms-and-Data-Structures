@@ -169,7 +169,8 @@ namespace algo
         
         constexpr void delete_fixup(node_type* position)
         {
-            while (position != root && !is_node_red(position)) 
+            node_type pivot{nullptr};
+            while(position != root && !is_node_red(position)) 
             {
                 if(is_left_child(position))
                 {
