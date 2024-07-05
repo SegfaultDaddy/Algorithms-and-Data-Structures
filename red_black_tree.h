@@ -169,7 +169,31 @@ namespace algo
         
         constexpr void delete_fixup(node_type* position)
         {
-
+            while (position != root && !is_node_red(position)) 
+            {
+                if(is_left_child(position))
+                {
+                }
+                else 
+                {
+                }
+            }
+        }
+        
+        constexpr void delete_fixup_case1()
+        {
+        }
+        
+        constexpr void delete_fixup_case2()
+        {
+        }
+        
+        constexpr void delete_fixup_case3()
+        {
+        }
+        
+        constexpr void delete_fixup_case4()
+        {
         }
         
         constexpr void delete_condition_case3(node_type* target, node_type* replacement)
@@ -218,7 +242,7 @@ namespace algo
                 node_type* uncle{find_uncle(position)};
                 if(is_node_red(uncle))
                 {
-                    case1_insert(position->parent, uncle);
+                    insert_fixup_case1(position->parent, uncle);
                     position = position->parent->parent;
                 }
                 else
@@ -237,16 +261,16 @@ namespace algo
             if(is_left_child(*position) != is_left_child((*position)->parent))
             {
                 node_type* remember{(*position)->parent};
-                case2_insert(*position);
+                insert_fixup_case2(*position);
                 *position = remember;
             }
             else 
             {
-                case3_insert(*position);
+                insert_fixup_case3(*position);
             }
         }
 
-        constexpr void case1_insert(node_type* parent, node_type* uncle)
+        constexpr void insert_fixup_case1(node_type* parent, node_type* uncle)
         {
             recolor(parent);
             recolor(uncle);
@@ -257,7 +281,7 @@ namespace algo
             }
         }
         
-        constexpr void case2_insert(node_type* node)
+        constexpr void insert_fixup_case2(node_type* node)
         {
             if(is_left_child(node))
             {
@@ -269,7 +293,7 @@ namespace algo
             }
         }
 
-        constexpr void case3_insert(node_type* node)
+        constexpr void insert_fixup_case3(node_type* node)
         {
             recolor(node->parent);
             recolor(node->parent->parent);
@@ -393,4 +417,4 @@ namespace algo
     };
 }
 
-#endif // !RED_BLACK_TREE_H
+#endif

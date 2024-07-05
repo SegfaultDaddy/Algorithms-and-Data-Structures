@@ -5,7 +5,8 @@
 #include <random>
 
 void fixed_insert_test()
-{   algo::red_black_tree<int, char> tree{};
+{   
+    algo::red_black_tree<int, char> tree{};
     tree.insert(10, 'A');
     tree.insert(85, 'A');
     tree.insert(15, 'A');
