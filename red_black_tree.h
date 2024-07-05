@@ -1,6 +1,7 @@
 #ifndef RED_BLACK_TREE_H
 #define RED_BLACK_TREE_H
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <functional>
@@ -49,6 +50,7 @@ namespace algo
     public:
         
         using node_type = red_black_tree_node<Key, Type>;
+        
         using key_compare = Compare;
 
         red_black_tree()
@@ -71,6 +73,7 @@ namespace algo
             {
                 return;
             }
+            delete_condition(found);
         }
         
         node_type* find(const Key& key)
@@ -142,36 +145,104 @@ namespace algo
         
     private:    
         
-        void insert_fixup(node_type* position)
+        constexpr void delete_condition(node_type* target)
+        {
+            node_type* fixup_start{nullptr};
+            if(target->left == nullptr)
+            {
+                fixup_start = target->right;
+                delete_transplant(target, target->right);
+            }
+            else if(target->right == nullptr)
+            {
+                fixup_start = target->left;
+                delete_transplant(target, target->left);
+            }
+            else 
+            {
+                node_type* replacement{find_maximum(target->left)};
+                fixup_start = replacement->left;
+                delete_condition_case3(target, replacement);
+            }
+            delete_fixup(fixup_start);
+        }
+        
+        constexpr void delete_fixup(node_type* position)
+        {
+
+        }
+        
+        constexpr void delete_condition_case3(node_type* target, node_type* replacement)
+        {   
+            delete_transplant(replacement, replacement->left);
+            target->left->parent = replacement;
+            replacement->left = target->left;
+            delete_transplant(target, replacement);
+            target->right->parent = replacement;
+            replacement->right = target->right;
+        }
+        
+        constexpr node_type find_maximum(node_type* position)
+        {
+            while(position->right) 
+            {
+                position = position->right;
+            }
+            return position;
+        }
+        
+        constexpr void delete_transplant(node_type* target, node_type* replacement)
+        {
+            if(target == root)
+            {
+                root = replacement;
+            }
+            else if(is_left_child(target))
+            {
+                target->parent->left = replacement;
+            }
+            else 
+            {
+                target->parent->right = replacement;
+            }
+            if(replacement)
+            {
+                replacement->parent = target->parent;
+            }
+        }
+        
+        constexpr void insert_fixup(node_type* position)
         {
             while(is_node_red(position->parent)) 
             {
-                if(position->parent->parent)
+                node_type* uncle{find_uncle(position)};
+                if(is_node_red(uncle))
                 {
-                    node_type* uncle{find_uncle(position)};
-                    if(is_node_red(uncle))
-                    {
-                        case1_insert(position->parent, uncle);
-                        position = position->parent->parent;
-                    }
-                    else
-                    {
-                        if(is_left_child(position) != is_left_child(position->parent))
-                        {
-                            node_type* remember{position->parent};
-                            case2_insert(position);
-                            position = remember;
-                        }
-                        else 
-                        {
-                            case3_insert(position);
-                        }
-                    }
+                    case1_insert(position->parent, uncle);
+                    position = position->parent->parent;
+                }
+                else
+                {
+                    insert_fixup_black_uncle(&position);
                 }
             }
             if(is_node_red(root))
             {
                 root->color = node_color::black;
+            }
+        }
+        
+        constexpr void insert_fixup_black_uncle(node_type** position)
+        {
+            if(is_left_child(*position) != is_left_child((*position)->parent))
+            {
+                node_type* remember{(*position)->parent};
+                case2_insert(*position);
+                *position = remember;
+            }
+            else 
+            {
+                case3_insert(*position);
             }
         }
 
@@ -214,57 +285,57 @@ namespace algo
         
         constexpr void left_rotation(node_type* node)
         {   
-            node_type* right_child{node->right};
-            right_child->parent = node->parent;
-            if(right_child->parent)
+            node_type* rightChild{node->right};
+            rightChild->parent = node->parent;
+            if(rightChild->parent)
             {
                 if(is_left_child(node))
                 {
-                    right_child->parent->left = right_child;
+                    rightChild->parent->left = rightChild;
                 }
                 else               
                 {
-                    right_child->parent->right = right_child;
+                    rightChild->parent->right = rightChild;
                 }
             }
-            node->right = right_child->left;
-            node->parent = right_child;
-            right_child->left = node;
+            node->right = rightChild->left;
+            node->parent = rightChild;
+            rightChild->left = node;
             if(node->right)
             {
                 node->right->parent = node;
             }
             if(node == root)
             {
-                root = right_child;
+                root = rightChild;
             }
         }
     
         constexpr void right_rotation(node_type* node)
         {   
-            node_type* left_child{node->left};
-            left_child->parent = node->parent;
-            if(left_child->parent)
+            node_type* leftChild{node->left};
+            leftChild->parent = node->parent;
+            if(leftChild->parent)
             {
                 if(is_left_child(node))
                 {
-                    left_child->parent->left = left_child;
+                    leftChild->parent->left = leftChild;
                 }
                 else               
                 {
-                    left_child->parent->right = left_child;
+                    leftChild->parent->right = leftChild;
                 }
             }
-            node->left = left_child->right;
-            node->parent = left_child;
-            left_child->right = node;
+            node->left = leftChild->right;
+            node->parent = leftChild;
+            leftChild->right = node;
             if(node->left)
             {
                 node->left->parent = node;
             }
             if(node == root)
             {
-                root = left_child;
+                root = leftChild;
             }
         }
 

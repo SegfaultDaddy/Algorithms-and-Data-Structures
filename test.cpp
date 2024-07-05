@@ -1,26 +1,10 @@
 #include "red_black_tree.h"
 #include <cstddef>
 #include <exception>
+#include <ios>
 #include <random>
 
-std::size_t generate_unsigned_int(std::size_t low_bound, std::size_t high_bound)
-{
-    std::random_device rd{};
-    std::seed_seq ss{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
-    std::default_random_engine dre{ss};
-    std::uniform_int_distribution<std::size_t> uid{low_bound, high_bound};
-    return uid(dre);
-}
-
-void random_test(std::size_t size, std::size_t low_bound, std::size_t high_bound)
-{
-    for(std::size_t index{0}; index < 10; ++index)
-    {
-        std::cout << generate_unsigned_int(low_bound, high_bound) << '\n';
-    }
-}
-
-void fixed_test()
+void fixed_insert_test()
 {   algo::red_black_tree<int, char> tree{};
     tree.insert(10, 'A');
     tree.insert(85, 'A');
@@ -39,11 +23,16 @@ void fixed_test()
     tree.print();
 }
 
+void fixed_delete_test()
+{
+
+}
+
 int main()
 {
     try 
     {
-        random_test(10, 10, 100);
+        fixed_insert_test();
     } 
     catch (const std::exception& exept)
     {
