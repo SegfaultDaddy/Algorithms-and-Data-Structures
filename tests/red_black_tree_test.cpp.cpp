@@ -1,7 +1,8 @@
-#include "red_black_tree.h"
+#include <gtest/gtest.h>
 #include <exception>
+#include "../source/red_black_tree.h"
 
-void fixed_insert_test()
+TEST(REDBLACKTREE, INSERT)
 {   
     algo::red_black_tree<int, char> tree{};
     tree.insert(10, 'A');
@@ -18,24 +19,11 @@ void fixed_insert_test()
     tree.insert(40, 'A');
     tree.insert(5, 'A');
     tree.insert(55, 'A');
-    tree.print();
 }
 
-void fixed_delete_test()
+int main(int argc, char** argv)
 {
-
-}
-
-int main()
-{
-    try 
-    {
-        fixed_insert_test();
-    } 
-    catch (const std::exception& exept)
-    {
-        std::cerr << "Error: " << exept.what() << '\n';
-    }
-    return 0;
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 
