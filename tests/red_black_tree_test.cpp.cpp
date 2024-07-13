@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 #include <exception>
+#include <random>
+#include <ranges>
 #include "../source/red_black_tree.h"
 
-TEST(REDBLACKTREE, INSERT)
+TEST(REDBLACKTREE, INSERT_PRE_DEFINED)
 {   
     algo::red_black_tree<int, char> tree{};
     tree.insert(10, 'A');
@@ -21,9 +23,17 @@ TEST(REDBLACKTREE, INSERT)
     tree.insert(55, 'A');
 }
 
+TEST(REDBLACKTREE, INSERT_RANDOM)
+{   
+    algo::red_black_tree<int, char> tree{};
+    for(auto index : std::views::iota(0u, 100u))
+    {
+        tree.insert(std::random_device{}(), 'A');
+    }
+}
+
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
