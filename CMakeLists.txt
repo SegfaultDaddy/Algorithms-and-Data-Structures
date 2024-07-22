@@ -15,8 +15,8 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(red_black_tree_test tests/red_black_tree_test.cpp)
-target_link_libraries(red_black_tree_test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+add_executable(dynamic_matrix_test tests/dynamic_matrix_test.cpp)
+target_link_libraries(dynamic_matrix_test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 
 include(GoogleTest)
-gtest_discover_tests(red_black_tree_test)
+gtest_discover_tests(dynamic_matrix_test)
