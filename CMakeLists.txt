@@ -15,7 +15,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(dynamic_matrix_test tests/dynamic_matrix_test.cpp)
+add_executable(dynamic_matrix_test tests/dynamic_matrix_test.cpp source/dynamic_matrix.h)
 target_link_libraries(dynamic_matrix_test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 
 include(GoogleTest)

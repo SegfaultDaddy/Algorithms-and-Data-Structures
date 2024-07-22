@@ -47,7 +47,7 @@ namespace algo
         {
             for(std::size_t row{0}; row < rows(); ++row)
             {
-                for(std::size_t col{0}; col < cols(): ++col)
+                for(std::size_t col{0}; col < cols(); ++col)
                 {
                     std::allocator_traits<allocator_type>::construct(memory, storage + row * rows() + col, std::move(that.storage[row + col * cols()]));
                 }
@@ -100,7 +100,7 @@ namespace algo
             {
                 throw std::out_of_range{"Error: wrong col number."};
             }
-            return storage[row + col * cols()];
+            return storage[row * rows() + col] ;
         }
         
         constexpr const_reference operator[](size_type row, size_type col) const
@@ -113,7 +113,7 @@ namespace algo
             {
                 throw std::out_of_range{"Error: wrong col number."};
             }
-            return storage[row + col * cols()];
+            return storage[row * rows() + col];
         }
 
         constexpr pointer data() noexcept
@@ -132,14 +132,15 @@ namespace algo
             if(preserve)
             {
                 copy_to_fresh_memory(freshStorage, freshRows, freshCols);
+                clear();
             }
             else
             {
                 clear();
                 initialize_default(freshStorage);
             }
-            rowsNumber = row;
-            colsNumber = col;
+            rowsNumber = freshRows;
+            colsNumber = freshCols;
             storage = freshStorage;
         }
 
@@ -160,7 +161,7 @@ namespace algo
                     std::allocator_traits<allocator_type>::destroy(memory, storage + row * rows() + col);
                 }
             }
-            std::allocator_traits<allocator_type>::deallocate(memory, rows() * cols());
+            std::allocator_traits<allocator_type>::deallocate(memory, storage, rows() * cols());
             rowsNumber = 0;
             colsNumber = 0;
             storage = std::allocator_traits<Allocator>::allocate(memory, 0);
@@ -169,12 +170,12 @@ namespace algo
         constexpr void copy_to_fresh_memory(pointer freshStorage, size_type freshRows, size_type freshCols)
         {
             size_type minRows{std::min(rows(), freshRows)};
-            size_type maxRows{std::min{cols(), freshCols}};
+            size_type minCols{std::min(cols(), freshCols)};
             for(size_type row{0}; row < minRows; ++row)
             {
                 for(size_type col{0}; col < minCols; ++col)
                 {
-                    std::allocator_traits<allocator_type>::construct(memory, storage + row * minRows + col, default_value);
+                    std::allocator_traits<allocator_type>::construct(memory, freshStorage + row * minRows + col, std::move(storage[row * minRows + col]));
                 }
             }
         }
