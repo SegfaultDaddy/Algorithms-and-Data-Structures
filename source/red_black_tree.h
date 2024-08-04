@@ -67,6 +67,7 @@ namespace algo
         
         RedBlackTree() 
             : root{nullptr}, alloc{}
+            , compare{}
         {
         }
 
@@ -79,6 +80,8 @@ namespace algo
                 return;
             }
             delete_condition(found);
+            std::allocator_traits<allocator_type>::destroy(alloc, found);
+            std::allocator_traits<allocator_type>::deallocate(alloc, found, 1);
         }
 
         void insert(const key_type& key, const_reference value)
@@ -120,19 +123,37 @@ namespace algo
                 }
             }
         }
+
+        void walk()
+        {
+            walk(root);
+        }
         //remove
     private:
+        //remove
+        void walk(node_type* pos)
+        {
+            if(pos == nullptr)
+            {
+                return;
+            }
+            walk(pos->left);
+            std::cout << pos->key << '\n';
+            walk(pos->right);
+        }
+        //remove
+
         node_type** lookup_position(const key_type& key, node_type** parent)
         {
             node_type** pos{&root};
             while(*pos) 
             {
                 *parent = *pos;
-                if(key_compare{}(key, (*pos)->key))
+                if(compare(key, (*pos)->key))
                 {
                     pos = &(*pos)->left;
                 }
-                else if(key_compare{}((*pos)->key, key))
+                else if(compare((*pos)->key, key))
                 {
                     pos = &(*pos)->right;
                 }
@@ -146,24 +167,38 @@ namespace algo
 
         void delete_condition(node_type* target)
         {
-            node_type* fixup_start{nullptr};
+            node_type* fixupStart{nullptr};
             if(target->left == nullptr)
             {
-                fixup_start = target->right;
+                fixupStart = target->right;
                 delete_transplant(target, target->right);
             }
             else if(target->right == nullptr)
             {
-                fixup_start = target->left;
+                fixupStart = target->left;
                 delete_transplant(target, target->left);
             }
             else 
             {
-                node_type* replacement{find_maximum(target->left)};
-                fixup_start = replacement->left;
+                node_type* replacement{lookup_maximum(target->left)};
+                fixupStart = replacement->left;
                 delete_condition_case3(target, replacement);
             }
-            //delete_fixup(fixup_start);
+            delete_fixup(fixupStart);
+        }
+
+        void delete_fixup(node_type* fixupStart)
+        {
+        }
+        
+        void delete_condition_case3(node_type* target, node_type* replacement)
+        {   
+            delete_transplant(replacement, replacement->left);
+            target->left->parent = replacement;
+            replacement->left = target->left;
+            delete_transplant(target, replacement);
+            target->right->parent = replacement;
+            replacement->right = target->right;
         }
         
         void delete_transplant(node_type* target, node_type* replacement)
@@ -186,23 +221,13 @@ namespace algo
             }
         }
 
-        node_type* find_maximum(node_type* position)
+        node_type* lookup_maximum(node_type* position)
         {
             while(position->right) 
             {
                 position = position->right;
             }
             return position;
-        }
-        
-        void delete_condition_case3(node_type* target, node_type* replacement)
-        {   
-            delete_transplant(replacement, replacement->left);
-            target->left->parent = replacement;
-            replacement->left = target->left;
-            delete_transplant(target, replacement);
-            target->right->parent = replacement;
-            replacement->right = target->right;
         }
 
         void insert_fixup(node_type* position)
@@ -362,25 +387,28 @@ namespace algo
 
         bool is_node_red(node_type* node)
         {
-            if(node)
+            if(node == nullptr)
             {
-                return node->color == RedBlackColor::red;
+                return false;    
             }
-            return false;
+            return node->color == RedBlackColor::red;;
         }
 
         bool is_left_child(node_type* node)
         {
             return node->parent->left == node;
         }
+
         //remove
         void print_node(node_type* node)
         {
             std::cout << node << '|' << node->key << '~' << node->data << '~' << static_cast<std::uint32_t>(node->color) << '|' << node->parent << '~' << node->left << '~' << node->right << '\n';
         }
         //remove
+
         node_type* root;
         allocator_type alloc;
+        key_compare compare;
     };
 }   
 #endif
