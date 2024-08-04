@@ -116,6 +116,16 @@ namespace algo
             return storage[row * rows() + col];
         }
 
+        constexpr reference at(size_type row, size_type col)
+        {
+            return (*this)[row, col];
+        }
+
+        constexpr const_reference at(size_type row, size_type col) const
+        {
+            return (*this)[row, col];
+        }
+
         constexpr pointer data() noexcept
         {
             return data;

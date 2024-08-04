@@ -12,7 +12,7 @@ TEST(dynamic_matrix_test, indexing)
     algo::DynamicMatrix<int> matrix{4};
     try
     {
-        matrix[4, 0];
+        matrix.at(4, 0);
         FAIL() << "Error: expected throw.";
     }
     catch(const std::out_of_range& error)
@@ -25,7 +25,7 @@ TEST(dynamic_matrix_test, indexing)
     }
     try
     {
-        matrix[0, 4];
+        matrix.at(0, 4);
         FAIL() << "Error: expected throw.";
     }
     catch(const std::out_of_range& error)
@@ -36,7 +36,7 @@ TEST(dynamic_matrix_test, indexing)
     {
         FAIL() << "Error: expected std::out_of_range exception.";
     }
-    EXPECT_NO_THROW(matrix[3, 3]);
+    EXPECT_NO_THROW(matrix.at(1, 2));
 }
 
 int main(int argc, char** argv)

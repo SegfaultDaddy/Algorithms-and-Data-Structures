@@ -1,134 +1,104 @@
 #ifndef RED_BLACK_TREE_H
 #define RED_BLACK_TREE_H
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
-#include <functional>
+//remove
 #include <iostream>
+#include <print>
+//remove
+#include <cstdint>
+#include <memory>
+#include <functional>
 #include <queue>
-#include <ranges>
 
 namespace algo
 {
-    enum class node_color : std::uint8_t
+    enum class RedBlackColor : std::uint8_t
     {
-        red,
+        red = 0,
         black,
-        max_colors,
     };
-    
+
     template<typename Key, typename Type>
-    struct red_black_tree_node
+    struct RedBlackNode
     {
-        
-        constexpr red_black_tree_node(const node_color color, const Key& key, const Type& value)
-            : color{color}, key{key}
-            , value{value}
+        RedBlackNode()
+            : parent{nullptr}, left{nullptr}
+            , right{nullptr}, color{}
+            , key{}, data{}
         {
         }
-        
-        constexpr red_black_tree_node(red_black_tree_node* parent, red_black_tree_node* left, red_black_tree_node* right, const node_color color, const Key& key, const Type& value)
+
+        RedBlackNode(RedBlackNode* parent, 
+                     RedBlackNode* left, 
+                     RedBlackNode* right, 
+                     RedBlackColor color, 
+                     Key key, Type data)
             : parent{parent}, left{left}
             , right{right}, color{color}
-            , key{key}, value{value}
+            , key{std::move(key)}, data{std::move(data)}
         {
         }
-        
-        red_black_tree_node* parent;
-        red_black_tree_node* left;
-        red_black_tree_node* right;
-        node_color color;
-        const Key key;
-        Type value;
 
+        RedBlackNode* parent;
+        RedBlackNode* left;
+        RedBlackNode* right;
+        RedBlackColor color;
+        const Key key;
+        Type data;
     };
 
-    template<typename Key, typename Type, typename Compare = std::less<Key>>
-    class red_black_tree
+    template<typename Key, 
+             typename Type, 
+             typename Compare = std::less<Key>>
+    class RedBlackTree
     {
     public:
-        
-        using node_type = red_black_tree_node<Key, Type>;
-        
+        using key_type = Key;
+        using value_type = Type;
+        using size_type = std::size_t;
         using key_compare = Compare;
-
-        red_black_tree()
-            : root{nullptr}
+        using difference_type = std::ptrdiff_t;
+        using node_type = RedBlackNode<Key, Type>;
+        using allocator_type = std::allocator<node_type>;
+        using reference = value_type&;
+        using const_reference = const value_type&; 
+        using pointer = value_type*;
+        using const_pointer = const value_type*;
+        
+        RedBlackTree() 
+            : root{nullptr}, alloc{}
         {
         }
 
-        red_black_tree(const red_black_tree& that) = delete;
-    
-        red_black_tree(red_black_tree&& that) = delete;
-
-        red_black_tree& operator=(const red_black_tree&& that) = delete;
-
-        red_black_tree& operator=(red_black_tree&& that) = delete;
-
-        void remove(const Key& key)
+        void remove(const key_type& key)
         {
-            node_type* found{find(key)};
+            node_type* found{nullptr};
+            lookup_position(key, &found);
             if(found == nullptr)
             {
                 return;
             }
             delete_condition(found);
         }
-        
-        node_type* find(const Key& key)
+
+        void insert(const key_type& key, const_reference value)
         {
-            node_type* position{root};
-            while(position) 
-            {
-                if(key_compare{}(key, position->key))
-                {
-                    position = position->left;
-                }
-                else if(key_compare{}(position->key, key))
-                {
-                    position = position->right;
-                }
-                else 
-                {
-                    break;
-                }
-            }
-            return position;
-        }
-        
-        void insert(const Key& key, const Type& value)
-        {
-            node_type** position{&root};
             node_type* parent{nullptr};
-            while(*position) 
-            {
-                parent = *position;
-                if(key_compare{}(key, (*position)->key))
-                {
-                    position = &(*position)->left;
-                }
-                else if(key_compare{}((*position)->key, key))
-                {
-                    position = &(*position)->right;
-                }
-                else 
-                {
-                    break;
-                }
-            }
+            node_type** position{lookup_position(key, &parent)};
             if(*position == nullptr)
             {
-                *position = new node_type{parent, nullptr, nullptr, node_color::red, key, value};
+                *position = std::allocator_traits<allocator_type>::allocate(alloc, 1);
+                std::allocator_traits<allocator_type>::construct(alloc, *position, parent, nullptr, nullptr, RedBlackColor::red, key, value);
                 insert_fixup(*position);
             }
         }
 
+        //remove 
         void print()
         {
             std::queue<node_type*> tree{};
             tree.push(root);
-            for(auto i{tree.front()}; !tree.empty(); i = tree.front())
+            for(auto i{tree.front()}; true; )
             {
                 print_node(i);
                 if(i->left)
@@ -140,12 +110,41 @@ namespace algo
                     tree.push(i->right);
                 }
                 tree.pop();
+                if(!tree.empty())
+                {
+                    i = tree.front();
+                }
+                else 
+                {
+                    break;
+                }
             }
         }
-        
-    private:    
-        
-        constexpr void delete_condition(node_type* target)
+        //remove
+    private:
+        node_type** lookup_position(const key_type& key, node_type** parent)
+        {
+            node_type** pos{&root};
+            while(*pos) 
+            {
+                *parent = *pos;
+                if(key_compare{}(key, (*pos)->key))
+                {
+                    pos = &(*pos)->left;
+                }
+                else if(key_compare{}((*pos)->key, key))
+                {
+                    pos = &(*pos)->right;
+                }
+                else 
+                {
+                    break;
+                }
+            }
+            return pos;
+        }
+
+        void delete_condition(node_type* target)
         {
             node_type* fixup_start{nullptr};
             if(target->left == nullptr)
@@ -164,59 +163,10 @@ namespace algo
                 fixup_start = replacement->left;
                 delete_condition_case3(target, replacement);
             }
-            delete_fixup(fixup_start);
+            //delete_fixup(fixup_start);
         }
         
-        constexpr void delete_fixup(node_type* position)
-        {
-            node_type pivot{nullptr};
-            while(position != root && !is_node_red(position)) 
-            {
-                if(is_left_child(position))
-                {
-                }
-                else 
-                {
-                }
-            }
-        }
-        
-        constexpr void delete_fixup_case1()
-        {
-        }
-        
-        constexpr void delete_fixup_case2()
-        {
-        }
-        
-        constexpr void delete_fixup_case3()
-        {
-        }
-        
-        constexpr void delete_fixup_case4()
-        {
-        }
-        
-        constexpr void delete_condition_case3(node_type* target, node_type* replacement)
-        {   
-            delete_transplant(replacement, replacement->left);
-            target->left->parent = replacement;
-            replacement->left = target->left;
-            delete_transplant(target, replacement);
-            target->right->parent = replacement;
-            replacement->right = target->right;
-        }
-        
-        constexpr node_type find_maximum(node_type* position)
-        {
-            while(position->right) 
-            {
-                position = position->right;
-            }
-            return position;
-        }
-        
-        constexpr void delete_transplant(node_type* target, node_type* replacement)
+        void delete_transplant(node_type* target, node_type* replacement)
         {
             if(target == root)
             {
@@ -235,8 +185,27 @@ namespace algo
                 replacement->parent = target->parent;
             }
         }
+
+        node_type* find_maximum(node_type* position)
+        {
+            while(position->right) 
+            {
+                position = position->right;
+            }
+            return position;
+        }
         
-        constexpr void insert_fixup(node_type* position)
+        void delete_condition_case3(node_type* target, node_type* replacement)
+        {   
+            delete_transplant(replacement, replacement->left);
+            target->left->parent = replacement;
+            replacement->left = target->left;
+            delete_transplant(target, replacement);
+            target->right->parent = replacement;
+            replacement->right = target->right;
+        }
+
+        void insert_fixup(node_type* position)
         {
             while(is_node_red(position->parent)) 
             {
@@ -253,11 +222,11 @@ namespace algo
             }
             if(is_node_red(root))
             {
-                root->color = node_color::black;
+                root->color = RedBlackColor::black;
             }
         }
         
-        constexpr void insert_fixup_black_uncle(node_type** position)
+        void insert_fixup_black_uncle(node_type** position)
         {
             if(is_left_child(*position) != is_left_child((*position)->parent))
             {
@@ -270,19 +239,19 @@ namespace algo
                 insert_fixup_case3(*position);
             }
         }
-
-        constexpr void insert_fixup_case1(node_type* parent, node_type* uncle)
+        
+        void insert_fixup_case1(node_type* parent, node_type* uncle)
         {
             recolor(parent);
             recolor(uncle);
             recolor(parent->parent);
-            if(root->color == node_color::red)
+            if(is_node_red(root))
             {
                 recolor(root);
             }
         }
         
-        constexpr void insert_fixup_case2(node_type* node)
+        void insert_fixup_case2(node_type* node)
         {
             if(is_left_child(node))
             {
@@ -294,7 +263,7 @@ namespace algo
             }
         }
 
-        constexpr void insert_fixup_case3(node_type* node)
+        void insert_fixup_case3(node_type* node)
         {
             recolor(node->parent);
             recolor(node->parent->parent);
@@ -308,7 +277,34 @@ namespace algo
             }
         }
         
-        constexpr void left_rotation(node_type* node)
+        void recolor(node_type* node)
+        {
+            switch(node->color)
+            {
+            case RedBlackColor::red:
+                node->color = RedBlackColor::black;
+                break;
+            case RedBlackColor::black:
+                node->color = RedBlackColor::red;
+                break;
+            default:
+                break;
+            }
+        }
+        
+        node_type* find_uncle(node_type* node)
+        {
+            if(is_left_child(node->parent))
+            {
+                return node->parent->parent->right;
+            }
+            else  
+            {
+                return node->parent->parent->left;   
+            }
+        }
+        
+        void left_rotation(node_type* node)
         {   
             node_type* rightChild{node->right};
             rightChild->parent = node->parent;
@@ -336,7 +332,7 @@ namespace algo
             }
         }
     
-        constexpr void right_rotation(node_type* node)
+        void right_rotation(node_type* node)
         {   
             node_type* leftChild{node->left};
             leftChild->parent = node->parent;
@@ -364,58 +360,27 @@ namespace algo
             }
         }
 
-        constexpr void recolor(node_type* node)
-        {
-            switch(node->color)
-            {
-            case node_color::red:
-                node->color = node_color::black;
-                break;
-            case node_color::black:
-                node->color = node_color::red;
-                break;
-            default:
-                break;
-            }
-        }
-        
-        constexpr node_type* find_uncle(node_type* node)
-        {
-            if(is_left_child(node->parent))
-            {
-                return node->parent->parent->right;
-            }
-            else  
-            {
-                return node->parent->parent->left;   
-            }
-        }
-        
-        constexpr bool is_left_child(node_type* node)
-        {
-            return node->parent->left == node;
-        }
-        
-        constexpr bool is_node_red(node_type* node)
+        bool is_node_red(node_type* node)
         {
             if(node)
             {
-                if(node->color == node_color::red)
-                {
-                     return true;
-                }
+                return node->color == RedBlackColor::red;
             }
             return false;
         }
-        
+
+        bool is_left_child(node_type* node)
+        {
+            return node->parent->left == node;
+        }
+        //remove
         void print_node(node_type* node)
         {
-            std::cout << node << '|' << node->key << '~' << node->value << '~' << static_cast<std::uint32_t>(node->color) << '|' << node->parent << '~' << node->left << '~' << node->right << '\n';
+            std::cout << node << '|' << node->key << '~' << node->data << '~' << static_cast<std::uint32_t>(node->color) << '|' << node->parent << '~' << node->left << '~' << node->right << '\n';
         }
-
+        //remove
         node_type* root;
-
+        allocator_type alloc;
     };
-}
-
+}   
 #endif
