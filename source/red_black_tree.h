@@ -30,14 +30,15 @@ namespace algo
         {
         }
 
+        template<typename... Args>
         RedBlackNode(RedBlackNode* parent, 
                      RedBlackNode* left, 
                      RedBlackNode* right, 
                      RedBlackColor color, 
-                     Key key, Type data)
+                     Key key, Args&&... args)
             : parent{parent}, left{left}
             , right{right}, color{color}
-            , key{std::move(key)}, data{std::move(data)}
+            , key{std::move(key)}, data{std::forward<Args>(args)...}
         {
         }
 
@@ -73,10 +74,10 @@ namespace algo
             , compare{}
         {
         }
-
-        iterator insert(const key_type& key, const value_type& value)
+        
+        ~RedBlackTree() 
         {
-            return emplace(key, value);
+            clear();
         }
         
         template<typename... Args>
@@ -92,6 +93,11 @@ namespace algo
                 insert_fixup(*position);
             }
             return iterator{*position};
+        }
+
+        iterator insert(const key_type& key, const value_type& value)
+        {
+            return emplace(key, value);
         }
         
         void remove(const key_type& key)
@@ -110,6 +116,10 @@ namespace algo
         reference operator[](const key_type& ref)
         {
             return *insert(ref, value_type{});
+        }
+
+        void clear()
+        {
         }
         
         //remove 
