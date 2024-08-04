@@ -55,12 +55,13 @@ TEST(red_black_tree_test_remove, remove)
 
 int main(int argc, char** argv)
 {
+    std::vector<int> keys{10, 85, 15, 70, 20, 60, 30, 50, 65, 80, 90, 40, 5, 55};
     algo::RedBlackTree<int, int> tree;
-    std::vector<int> keys{};
     for(const auto& key : keys)
     {
         tree.insert(key, 0);
     }
+    tree.print();
     //testing::InitGoogleTest(&argc, argv);
     return 0;//RUN_ALL_TESTS();
 }

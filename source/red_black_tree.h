@@ -4,11 +4,12 @@
 //remove
 #include <iostream>
 #include <print>
+#include <queue>
 //remove
 #include <cstdint>
 #include <memory>
 #include <functional>
-#include <queue>
+#include <utility>
 
 namespace algo
 {
@@ -16,6 +17,7 @@ namespace algo
     {
         red = 0,
         black,
+        max_red_black_color,
     };
 
     template<typename Key, typename Type>
@@ -64,17 +66,38 @@ namespace algo
         using const_reference = const value_type&; 
         using pointer = value_type*;
         using const_pointer = const value_type*;
-        
+        using iterator = node_type*;
+
         RedBlackTree() 
             : root{nullptr}, alloc{}
             , compare{}
         {
         }
 
+        iterator insert(const key_type& key, const value_type& value)
+        {
+            return emplace(key, value);
+        }
+        
+        template<typename... Args>
+        iterator emplace(const key_type& key, Args&&... args)
+        {
+            node_type* parent{nullptr};
+            node_type** position{lookup_position(key, &parent, &root)};
+            if(*position == nullptr)
+            {
+                *position = std::allocator_traits<allocator_type>::allocate(alloc, 1);
+                std::allocator_traits<allocator_type>::construct(alloc, *position, parent, nullptr, nullptr, 
+                                                                 RedBlackColor::red, key, std::forward<Args>(args)...);
+                insert_fixup(*position);
+            }
+            return iterator{*position};
+        }
+        
         void remove(const key_type& key)
         {
             node_type* found{nullptr};
-            lookup_position(key, &found);
+            lookup_position(key, &found, &root);
             if(found == nullptr)
             {
                 return;
@@ -84,20 +107,13 @@ namespace algo
             std::allocator_traits<allocator_type>::deallocate(alloc, found, 1);
         }
 
-        void insert(const key_type& key, const_reference value)
+        reference operator[](const key_type& ref)
         {
-            node_type* parent{nullptr};
-            node_type** position{lookup_position(key, &parent)};
-            if(*position == nullptr)
-            {
-                *position = std::allocator_traits<allocator_type>::allocate(alloc, 1);
-                std::allocator_traits<allocator_type>::construct(alloc, *position, parent, nullptr, nullptr, RedBlackColor::red, key, value);
-                insert_fixup(*position);
-            }
+            return *insert(ref, value_type{});
         }
-
+        
         //remove 
-        void print()
+        void print() const
         {
             std::queue<node_type*> tree{};
             tree.push(root);
@@ -124,14 +140,14 @@ namespace algo
             }
         }
 
-        void walk()
+        void walk() const
         {
             walk(root);
         }
         //remove
     private:
         //remove
-        void walk(node_type* pos)
+        void walk(const node_type* pos) const
         {
             if(pos == nullptr)
             {
@@ -143,9 +159,8 @@ namespace algo
         }
         //remove
 
-        node_type** lookup_position(const key_type& key, node_type** parent)
+        node_type** lookup_position(const key_type& key, node_type** parent, node_type** pos) const
         {
-            node_type** pos{&root};
             while(*pos) 
             {
                 *parent = *pos;
@@ -221,7 +236,7 @@ namespace algo
             }
         }
 
-        node_type* lookup_maximum(node_type* position)
+        node_type* lookup_maximum(const node_type* position) const
         {
             while(position->right) 
             {
@@ -385,7 +400,7 @@ namespace algo
             }
         }
 
-        bool is_node_red(node_type* node)
+        bool is_node_red(node_type* node) const noexcept
         {
             if(node == nullptr)
             {
@@ -394,15 +409,18 @@ namespace algo
             return node->color == RedBlackColor::red;;
         }
 
-        bool is_left_child(node_type* node)
+        bool is_left_child(node_type* node) const noexcept
         {
             return node->parent->left == node;
         }
 
         //remove
-        void print_node(node_type* node)
-        {
-            std::cout << node << '|' << node->key << '~' << node->data << '~' << static_cast<std::uint32_t>(node->color) << '|' << node->parent << '~' << node->left << '~' << node->right << '\n';
+        void print_node(node_type* node) const
+        {   
+            std::println("{}|{}~{}~{}|{}~{}~{}",
+                         static_cast<void*>(node), node->key, node->data, 
+                         static_cast<size_type>(node->color), static_cast<void*>(node->parent), 
+                         static_cast<void*>(node->left), static_cast<void*>(node->right));
         }
         //remove
 
