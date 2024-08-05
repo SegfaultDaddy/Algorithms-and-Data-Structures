@@ -5,9 +5,122 @@
 #include <stdexcept>
 #include <memory>
 #include <algorithm>
+#include <iterator>
+//remove
+#include <vector>
+std::vector<int>::const_iterator it;
+//remove
 
 namespace algo
-{
+{   
+    template<typename Matrix>
+    struct DynamicMatrixConstIterator
+    {
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type        = typename Matrix::value_type;
+        using difference_type   = typename Matrix::difference_type;
+        using pointer           = typename Matrix::const_pointer;
+        using reference         = const value_type&;
+
+        constexpr DynamicMatrixConstIterator() noexcept
+            : pos{nullptr}
+        {
+        }
+
+        constexpr reference operator*() const noexcept
+        {
+            return *pos;
+        }
+
+        constexpr pointer operator->() const noexcept
+        {
+            return pos;
+        }
+
+        constexpr DynamicMatrixConstIterator& operator++() noexcept
+        {
+            pos += 1;
+            return *this;
+        }
+
+        constexpr DynamicMatrixConstIterator operator++(int) noexcept 
+        {   
+            auto copy{*this};
+            ++(*this);
+            return copy;
+        } 
+        
+        constexpr DynamicMatrixConstIterator& operator--() noexcept
+        {
+            pos -= 1;
+            return *this;
+        }
+
+        constexpr DynamicMatrixConstIterator operator--(int) noexcept 
+        {   
+            auto copy{*this};
+            --(*this);
+            return copy;
+        }
+        
+        constexpr DynamicMatrixConstIterator& operator+=(const difference_type offset) noexcept
+        {
+            pos += offset;
+            return *this;
+        }
+
+        constexpr DynamicMatrixConstIterator& operator-=(const difference_type offset) noexcept
+        {
+            pos -= offset;
+            return *this;
+        }
+
+        constexpr DynamicMatrixConstIterator operator+(const difference_type offset) const noexcept
+        {
+            auto copy{*this};
+            copy += offset;
+            return copy;
+        }
+
+        constexpr friend DynamicMatrixConstIterator operator+(const difference_type offset, DynamicMatrixConstIterator next)
+        {
+            next += offset;
+            return next;
+        }
+        
+        constexpr DynamicMatrixConstIterator operator-(const difference_type offset) const noexcept
+        {
+            auto copy{*this};
+            copy -= offset;
+            return copy;
+        }
+
+        constexpr friend DynamicMatrixConstIterator operator-(const difference_type offset, DynamicMatrixConstIterator next) noexcept
+        {
+            next -= offset;
+            return next;
+        }
+
+        typename Matrix::pointer pos;
+    };
+    
+    template<typename Matrix>
+    struct DynamicMatrixIterator : DynamicMatrixConstIterator<Matrix>
+    {
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type        = typename Matrix::value_type;
+        using difference_type   = typename Matrix::difference_type;
+        using pointer           = typename Matrix::pointer;
+        using reference         = value_type&;
+
+        DynamicMatrixIterator() noexcept 
+            : pos{nullptr}
+        {
+        }
+
+        typename Matrix::pointer pos;
+    };
+
     template<typename Type, typename Allocator = std::allocator<Type>>
     class DynamicMatrix
     {
@@ -20,6 +133,8 @@ namespace algo
         using const_reference = const value_type&;
         using pointer = std::allocator_traits<allocator_type>::pointer;
         using const_pointer = std::allocator_traits<allocator_type>::const_pointer;
+        using iterator = DynamicMatrixIterator<DynamicMatrix>;
+        using const_iterator = DynamicMatrixConstIterator<DynamicMatrix>;
 
         constexpr DynamicMatrix()
             : rowsNumber{0}, colsNumber{0}
