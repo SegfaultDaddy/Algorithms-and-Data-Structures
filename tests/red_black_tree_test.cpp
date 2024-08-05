@@ -1,5 +1,6 @@
 //#include <gtest/gtest.h>
 #include <vector>
+#include <random>
 #include "../source/red_black_tree.h"
 
 /*TEST(red_black_tree_test_insert, insert)
@@ -61,7 +62,15 @@ int main(int argc, char** argv)
     {
         tree.insert(key, 0);
     }
-    tree.print();
+    std::shuffle(std::begin(keys), std::end(keys), std::default_random_engine{});
+    for(const auto& key : keys)
+    {
+        std::cout << key << '\n';
+        tree.remove(key);
+        tree.print();
+    }
+    tree.insert(10, 0);
+    tree.walk();
     //testing::InitGoogleTest(&argc, argv);
     return 0;//RUN_ALL_TESTS();
 }

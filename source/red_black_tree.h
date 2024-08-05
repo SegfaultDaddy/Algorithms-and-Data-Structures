@@ -20,7 +20,8 @@ namespace algo
         max_red_black_color,
     };
 
-    template<typename Key, typename Type>
+    template<typename Key, 
+             typename Type>
     struct RedBlackNode
     {
         RedBlackNode()
@@ -192,38 +193,96 @@ namespace algo
 
         void delete_condition(node_type* target)
         {
-            node_type* fixupStart{nullptr};
-            if(target->left == nullptr)
-            {
-                fixupStart = target->right;
-                delete_transplant(target, target->right);
-            }
-            else if(target->right == nullptr)
-            {
-                fixupStart = target->left;
-                delete_transplant(target, target->left);
-            }
-            else 
-            {
-                node_type* replacement{lookup_maximum(target->left)};
-                fixupStart = replacement->left;
-                delete_condition_case3(target, replacement);
-            }
-            delete_fixup(fixupStart);
-        }
-
-        void delete_fixup(node_type* fixupStart)
-        {
         }
         
-        void delete_condition_case3(node_type* target, node_type* replacement)
-        {   
-            delete_transplant(replacement, replacement->left);
-            target->left->parent = replacement;
-            replacement->left = target->left;
-            delete_transplant(target, replacement);
-            target->right->parent = replacement;
-            replacement->right = target->right;
+        void delete_fixup(node_type* start, node_type* parent)
+        {
+            print_node(parent);
+            node_type* sibling{nullptr};
+            while(start != root && !is_node_red(start))
+            {
+                sibling = lookup_sibling(start, parent);
+                if(is_node_red(sibling))
+                {
+                    sibling = delete_fixup_case1(sibling, parent);
+                }
+                if(sibling != nullptr)
+                {
+                    if(!is_node_red(sibling->left) 
+                       && !is_node_red(sibling->right))
+                    {
+                        sibling->color = RedBlackColor::red;
+                        start = parent;
+                        parent = start->parent;
+                    }
+                    else
+                    {
+                        if((!is_node_red(sibling->left) && is_left_child(sibling))
+                           || (!is_node_red(sibling->right) && !is_left_child(sibling)))
+                        {
+                            sibling = delete_fixup_case3(sibling, parent);
+                        }
+                        start = delete_fixup_case4(start, sibling, parent);
+                    }
+                }
+                if(start)
+                {
+                    start->color = RedBlackColor::black;
+                }
+            }
+        }
+
+        node_type* delete_fixup_case1(node_type* sibling, node_type* parent)
+        {
+            sibling->color = RedBlackColor::black;
+            parent->color = RedBlackColor::red;
+            if(!is_left_child(sibling))
+            {
+                left_rotation(parent);
+                return parent->right;
+            }
+            right_rotation(parent);
+            return parent->left;
+        }
+        
+        node_type* delete_fixup_case3(node_type* sibling, node_type* parent)
+        {
+            sibling->color = RedBlackColor::red;
+            if(is_left_child(sibling))
+            {
+                sibling->right->color = RedBlackColor::black;
+                left_rotation(sibling);
+                return parent->left;
+            }
+            sibling->left->color = RedBlackColor::black;
+            right_rotation(sibling);
+            return parent->right;
+        }
+        
+        node_type* delete_fixup_case4(node_type* node, node_type* sibling, node_type* parent)
+        {
+            sibling->color = parent->color;
+            parent->color = RedBlackColor::black;
+            if(parent->right == sibling)
+            {
+                sibling->right->color = RedBlackColor::black;
+                left_rotation(parent);
+            }
+            else
+            {
+                sibling->left->color = RedBlackColor::black;
+                right_rotation(parent);
+            }
+            return root;
+        }
+
+        node_type* lookup_sibling(node_type* node, node_type* parent) const
+        {
+            if(parent->left == node)
+            {
+                return parent->right;
+            }
+            return parent->left;
         }
         
         void delete_transplant(node_type* target, node_type* replacement)
@@ -246,7 +305,7 @@ namespace algo
             }
         }
 
-        node_type* lookup_maximum(const node_type* position) const
+        node_type* lookup_maximum(node_type* position) const
         {
             while(position->right) 
             {
@@ -259,7 +318,7 @@ namespace algo
         {
             while(is_node_red(position->parent)) 
             {
-                node_type* uncle{find_uncle(position)};
+                node_type* uncle{lookup_uncle(position)};
                 if(is_node_red(uncle))
                 {
                     insert_fixup_case1(position->parent, uncle);
@@ -270,10 +329,7 @@ namespace algo
                     insert_fixup_black_uncle(&position);
                 }
             }
-            if(is_node_red(root))
-            {
-                root->color = RedBlackColor::black;
-            }
+            root->color = RedBlackColor::black;
         }
         
         void insert_fixup_black_uncle(node_type** position)
@@ -342,7 +398,7 @@ namespace algo
             }
         }
         
-        node_type* find_uncle(node_type* node)
+        node_type* lookup_uncle(node_type* node)
         {
             if(is_left_child(node->parent))
             {
