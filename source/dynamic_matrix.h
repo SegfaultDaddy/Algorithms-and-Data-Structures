@@ -6,10 +6,7 @@
 #include <memory>
 #include <algorithm>
 #include <iterator>
-//remove
-#include <vector>
-std::vector<int>::const_iterator it;
-//remove
+#include <iostream>
 
 namespace algo
 {   
@@ -118,7 +115,7 @@ namespace algo
 
         constexpr bool operator==(const DynamicMatrixConstIterator& that) const noexcept
         {
-            return this->pos == that.pos;
+            return pos == that.pos;
         }
         
         constexpr bool operator!=(const DynamicMatrixConstIterator& that) const noexcept
@@ -150,7 +147,7 @@ namespace algo
     };
     
     template<typename Matrix>
-    struct DynamicMatrixIterator : DynamicMatrixConstIterator<Matrix>
+    struct DynamicMatrixIterator
     {
         using iterator_category = std::random_access_iterator_tag;
         using value_type        = typename Matrix::value_type;
@@ -158,12 +155,12 @@ namespace algo
         using pointer           = typename Matrix::pointer;
         using reference         = value_type&;
 
-        DynamicMatrixIterator() noexcept 
-            : pos{nullptr}
+        constexpr DynamicMatrixIterator() noexcept 
+            : pos{pos}
         {
         }
-        
-        DynamicMatrixIterator(pointer pos) noexcept 
+
+        constexpr DynamicMatrixIterator(pointer pos) noexcept 
             : pos{pos}
         {
         }
@@ -246,8 +243,38 @@ namespace algo
         {
             return *(*this + offset);
         }
+        
+        constexpr bool operator==(const DynamicMatrixIterator& that) const noexcept
+        {
+            return pos == that.pos;
+        }
+        
+        constexpr bool operator!=(const DynamicMatrixIterator& that) const noexcept
+        {
+            return !(*this == that);
+        }
 
-        typename Matrix::pointer pos;
+        constexpr bool operator<(const DynamicMatrixIterator& that) const noexcept
+        {
+            return this->pos < that.pos;
+        }
+        
+        constexpr bool operator>(const DynamicMatrixIterator& that) const noexcept
+        {
+            return that < *this;
+        }
+        
+        constexpr bool operator<=(const DynamicMatrixIterator& that) const noexcept
+        {
+            return !(that > *this);
+        }
+        
+        constexpr bool operator>=(const DynamicMatrixIterator& that) const noexcept
+        {
+            return !(that < *this);
+        }
+
+        pointer pos;
     };
 
     template<typename Type, typename Allocator = std::allocator<Type>>
@@ -380,6 +407,66 @@ namespace algo
         constexpr const_pointer data() const noexcept
         {
             return data;
+        }
+
+        constexpr iterator begin() noexcept
+        {
+            return iterator{storage};
+        }
+
+        constexpr const_iterator begin() const noexcept
+        {
+            return const_iterator{storage};
+        }
+        
+        constexpr const_iterator cbegin() const noexcept
+        {
+            return const_iterator{storage};
+        }
+        
+        constexpr reverse_iterator rbegin() noexcept
+        {
+            return reverse_iterator{storage};
+        }
+        
+        constexpr const_reverse_iterator rbegin() const noexcept
+        {
+            return const_reverse_iterator{storage};
+        }
+        
+        constexpr const_reverse_iterator crbegin() const noexcept
+        {
+            return const_reverse_iterator{storage};
+        }
+        
+        constexpr iterator end() noexcept
+        {
+            return iterator{storage + rows() * cols()};
+        }
+
+        constexpr const_iterator end() const noexcept
+        {
+            return const_iterator{storage + rows() * cols()};
+        }
+        
+        constexpr const_iterator cend() const noexcept
+        {
+            return const_iterator{storage + rows() * cols()};
+        }
+        
+        constexpr reverse_iterator rend() noexcept
+        {
+            return reverse_iterator{storage + rows() * cols()};
+        }
+        
+        constexpr const_reverse_iterator rend() const noexcept
+        {
+            return const_reverse_iterator{storage + rows() * cols()};
+        }
+        
+        constexpr const_reverse_iterator crend() const noexcept
+        {
+            return const_reverse_iterator{storage + rows() * cols()};
         }
 
         constexpr void resize(const size_type freshRows, const size_type freshCols, bool preserve = true)

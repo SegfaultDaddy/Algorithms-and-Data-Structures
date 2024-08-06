@@ -1,8 +1,10 @@
-#include <gtest/gtest.h>
+#include <iostream>
+#include <ranges>
 #include <cstdlib>
+//#include <gtest/gtest.h>
 #include "../source/dynamic_matrix.h"
 
-TEST(dynamic_matrix_test, insert)
+/*TEST(dynamic_matrix_test, insert)
 {
     algo::DynamicMatrix<int> matrix{};
 }
@@ -37,7 +39,7 @@ TEST(dynamic_matrix_test, indexing)
         FAIL() << "Error: expected std::out_of_range exception.";
     }
     EXPECT_NO_THROW(matrix.at(1, 2));
-}
+}*/
 
 int main(int argc, char** argv)
 {

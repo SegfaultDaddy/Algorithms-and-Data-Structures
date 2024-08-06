@@ -21,5 +21,5 @@ target_link_libraries(dynamic_matrix_test PRIVATE GTest::gtest GTest::gtest_main
 
 add_executable(red_black_tree_test tests/red_black_tree_test.cpp source/red_black_tree.h)
 # target_link_libraries(red_black_tree_test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
-# include(GoogleTest)
-# gtest_discover_tests(red_black_tree_test)
+include(GoogleTest)
+gtest_discover_tests(red_black_tree_test)
