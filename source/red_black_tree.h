@@ -20,6 +20,16 @@ namespace algo
         max_red_black_color,
     };
 
+    inline std::ostream & operator<<(std::ostream & out, RedBlackColor color) 
+    {
+        switch(color) 
+        {
+            case RedBlackColor::red: return out << "red";
+            case RedBlackColor::black: return out << "black";
+            default: return out << "Unimplemented enum: " << static_cast<std::uint64_t>(color);
+        }
+    }
+
     template<typename Key, 
              typename Type>
     struct RedBlackNode
@@ -126,6 +136,11 @@ namespace algo
         //remove 
         void print() const
         {
+            if(root == nullptr)
+            {
+                std::cout << "NULLPTR\n";
+                return;
+            }
             std::queue<node_type*> tree{};
             tree.push(root);
             for(auto i{tree.front()}; true; )
@@ -193,96 +208,49 @@ namespace algo
 
         void delete_condition(node_type* target)
         {
-        }
-        
-        void delete_fixup(node_type* start, node_type* parent)
-        {
-            print_node(parent);
-            node_type* sibling{nullptr};
-            while(start != root && !is_node_red(start))
+            node_type* start{nullptr};
+            node_type* parent{nullptr};
+            RedBlackColor color{target->color};
+            if(target->left == nullptr)
             {
-                sibling = lookup_sibling(start, parent);
-                if(is_node_red(sibling))
-                {
-                    sibling = delete_fixup_case1(sibling, parent);
-                }
-                if(sibling != nullptr)
-                {
-                    if(!is_node_red(sibling->left) 
-                       && !is_node_red(sibling->right))
-                    {
-                        sibling->color = RedBlackColor::red;
-                        start = parent;
-                        parent = start->parent;
-                    }
-                    else
-                    {
-                        if((!is_node_red(sibling->left) && is_left_child(sibling))
-                           || (!is_node_red(sibling->right) && !is_left_child(sibling)))
-                        {
-                            sibling = delete_fixup_case3(sibling, parent);
-                        }
-                        start = delete_fixup_case4(start, sibling, parent);
-                    }
-                }
-                if(start)
-                {
-                    start->color = RedBlackColor::black;
-                }
+                start = target->right;
+                parent = target->parent;
+                delete_transplant(target, target->right);
             }
-        }
-
-        node_type* delete_fixup_case1(node_type* sibling, node_type* parent)
-        {
-            sibling->color = RedBlackColor::black;
-            parent->color = RedBlackColor::red;
-            if(!is_left_child(sibling))
+            else if(target->right == nullptr)
             {
-                left_rotation(parent);
-                return parent->right;
-            }
-            right_rotation(parent);
-            return parent->left;
-        }
-        
-        node_type* delete_fixup_case3(node_type* sibling, node_type* parent)
-        {
-            sibling->color = RedBlackColor::red;
-            if(is_left_child(sibling))
-            {
-                sibling->right->color = RedBlackColor::black;
-                left_rotation(sibling);
-                return parent->left;
-            }
-            sibling->left->color = RedBlackColor::black;
-            right_rotation(sibling);
-            return parent->right;
-        }
-        
-        node_type* delete_fixup_case4(node_type* node, node_type* sibling, node_type* parent)
-        {
-            sibling->color = parent->color;
-            parent->color = RedBlackColor::black;
-            if(parent->right == sibling)
-            {
-                sibling->right->color = RedBlackColor::black;
-                left_rotation(parent);
+                start = target->left;
+                parent = target->parent;
+                delete_transplant(target, target->left);
             }
             else
             {
-                sibling->left->color = RedBlackColor::black;
-                right_rotation(parent);
+                color = delete_condition_case3(target, &start, &parent);
             }
-            return root;
-        }
-
-        node_type* lookup_sibling(node_type* node, node_type* parent) const
-        {
-            if(parent->left == node)
+            if(color == RedBlackColor::black)
             {
-                return parent->right;
+                delete_fixup(start, parent);
             }
-            return parent->left;
+        }
+        
+        RedBlackColor delete_condition_case3(node_type* target, node_type** start, node_type** parent)
+        {
+            auto found{lookup_maximum(target->left)};
+            auto color{found->color};
+            *start = found->left;
+            *parent = found;
+            if(found != target->left)
+            {
+                *parent = found->parent;
+                delete_transplant(found, found->left);
+                found->left = target->left;
+                found->left->parent = found;
+            }
+            delete_transplant(target, found);
+            found->right = target->right;
+            found->right->parent = found;
+            found->color = target->color;
+            return color;
         }
         
         void delete_transplant(node_type* target, node_type* replacement)
@@ -312,6 +280,82 @@ namespace algo
                 position = position->right;
             }
             return position;
+        }
+        
+        void delete_fixup(node_type* start, node_type* parent)
+        {
+            if(parent == nullptr)
+            {
+                return;
+            }
+            bool isSiblingRight{parent->left == start};
+            node_type* sibling{isSiblingRight? parent->right : parent->left};
+            while(start != root 
+                  && !is_node_red(start))
+            {
+                isSiblingRight = parent->left == start;
+                sibling = isSiblingRight? parent->right : parent->left;
+                if(is_node_red(sibling))
+                {
+                    sibling->color = RedBlackColor::black;
+                    parent->color = RedBlackColor::red;
+                    if(isSiblingRight)
+                    {
+                        left_rotation(parent);
+                        sibling = parent->right;
+                    }
+                    else
+                    {
+                        right_rotation(parent);
+                        sibling = parent->left;
+                    }
+                }
+                if(sibling == nullptr)
+                {
+                    break;
+                }
+                if(!is_node_red(sibling->left)
+                   && !is_node_red(sibling->right))
+                {
+                    sibling->color = RedBlackColor::red;
+                    start = parent;
+                    parent = start->parent;
+                }
+                else
+                {
+                    if((!is_node_red(sibling->right) && isSiblingRight)
+                       || (!is_node_red(sibling->left) && !isSiblingRight))
+                    {
+                        sibling->color = RedBlackColor::red;
+                        if(isSiblingRight)
+                        {
+                            sibling->left->color = RedBlackColor::black;
+                            right_rotation(sibling);
+                            sibling = parent->right;
+                        }
+                        else
+                        {
+                            sibling->right->color = RedBlackColor::black;
+                            left_rotation(sibling);
+                            sibling = parent->left;
+                        }
+                    }
+                    sibling->color = parent->color;
+                    parent->color = RedBlackColor::black;
+                    if(isSiblingRight)
+                    {
+                        sibling->right->color = RedBlackColor::black;
+                        left_rotation(parent);
+                    }
+                    else
+                    {
+                        sibling->left->color = RedBlackColor::black;
+                        right_rotation(parent);
+                    }
+                    start = root;
+                }
+                start->color = RedBlackColor::black;
+            }
         }
 
         void insert_fixup(node_type* position)
@@ -483,10 +527,13 @@ namespace algo
         //remove
         void print_node(node_type* node) const
         {   
-            std::println("{}|{}~{}~{}|{}~{}~{}",
-                         static_cast<void*>(node), node->key, node->data, 
-                         static_cast<size_type>(node->color), static_cast<void*>(node->parent), 
-                         static_cast<void*>(node->left), static_cast<void*>(node->right));
+            if(node == nullptr)
+            {
+                std::println("node is nullptr");
+                return;
+            }
+            std::cout << node << "|key: " << node->key << " ~val: " << node->data << " ~color: " << node->color 
+                      << "|" << node->parent << "~" << node->left << "~" << node->right << '\n';
         }
         //remove
 
