@@ -65,16 +65,13 @@ int main(int argc, char** argv)
     std::shuffle(std::begin(keys), std::end(keys), std::default_random_engine{});
     for(const auto& key : keys)
     {
-        tree.print();
         tree.remove(key);
-        std::cout << key << '\n';
     }
-    tree.print();
     for(const auto& key : keys)
     {
         tree.insert(key, 0);
     }
-    tree.walk();
+    std::cout << "Success\n";
     //testing::InitGoogleTest(&argc, argv);
     return 0;//RUN_ALL_TESTS();
 }
