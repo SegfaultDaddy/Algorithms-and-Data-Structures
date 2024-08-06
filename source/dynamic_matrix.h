@@ -27,6 +27,11 @@ namespace algo
         {
         }
 
+        constexpr DynamicMatrixConstIterator(typename Matrix::pointer pos) noexcept
+            : pos{pos}
+        {
+        }
+
         constexpr reference operator*() const noexcept
         {
             return *pos;
@@ -69,12 +74,6 @@ namespace algo
             return *this;
         }
 
-        constexpr DynamicMatrixConstIterator& operator-=(const difference_type offset) noexcept
-        {
-            pos -= offset;
-            return *this;
-        }
-
         constexpr DynamicMatrixConstIterator operator+(const difference_type offset) const noexcept
         {
             auto copy{*this};
@@ -88,6 +87,12 @@ namespace algo
             return next;
         }
         
+        constexpr DynamicMatrixConstIterator& operator-=(const difference_type offset) noexcept
+        {
+            pos -= offset;
+            return *this;
+        }
+        
         constexpr DynamicMatrixConstIterator operator-(const difference_type offset) const noexcept
         {
             auto copy{*this};
@@ -99,6 +104,46 @@ namespace algo
         {
             next -= offset;
             return next;
+        }
+
+        constexpr reference operator[](const difference_type offset) const noexcept
+        {
+            return *(*this + offset);
+        }
+
+        constexpr std::strong_ordering operator<=>(const DynamicMatrixConstIterator& that) const noexcept
+        {
+            return this->pos <=> that.pos;
+        }
+
+        constexpr bool operator==(const DynamicMatrixConstIterator& that) const noexcept
+        {
+            return this->pos == that.pos;
+        }
+        
+        constexpr bool operator!=(const DynamicMatrixConstIterator& that) const noexcept
+        {
+            return !(*this == that);
+        }
+
+        constexpr bool operator<(const DynamicMatrixConstIterator& that) const noexcept
+        {
+            return this->pos < that.pos;
+        }
+        
+        constexpr bool operator>(const DynamicMatrixConstIterator& that) const noexcept
+        {
+            return that < *this;
+        }
+        
+        constexpr bool operator<=(const DynamicMatrixConstIterator& that) const noexcept
+        {
+            return !(that > *this);
+        }
+        
+        constexpr bool operator>=(const DynamicMatrixConstIterator& that) const noexcept
+        {
+            return !(that < *this);
         }
 
         typename Matrix::pointer pos;
@@ -116,6 +161,90 @@ namespace algo
         DynamicMatrixIterator() noexcept 
             : pos{nullptr}
         {
+        }
+        
+        DynamicMatrixIterator(pointer pos) noexcept 
+            : pos{pos}
+        {
+        }
+        
+        constexpr reference operator*() const noexcept
+        {
+            return *pos;
+        }
+
+        constexpr pointer operator->() const noexcept
+        {
+            return pos;
+        }
+
+        constexpr DynamicMatrixIterator& operator++() noexcept
+        {
+            pos += 1;
+            return *this;
+        }
+
+        constexpr DynamicMatrixIterator operator++(int) noexcept 
+        {   
+            auto copy{*this};
+            ++(*this);
+            return copy;
+        } 
+        
+        constexpr DynamicMatrixIterator& operator--() noexcept
+        {
+            pos -= 1;
+            return *this;
+        }
+
+        constexpr DynamicMatrixIterator operator--(int) noexcept 
+        {   
+            auto copy{*this};
+            --(*this);
+            return copy;
+        }
+        
+        constexpr DynamicMatrixIterator& operator+=(const difference_type offset) noexcept
+        {
+            pos += offset;
+            return *this;
+        }
+
+        constexpr DynamicMatrixIterator operator+(const difference_type offset) const noexcept
+        {
+            auto copy{*this};
+            copy += offset;
+            return copy;
+        }
+
+        constexpr friend DynamicMatrixIterator operator+(const difference_type offset, DynamicMatrixIterator next)
+        {
+            next += offset;
+            return next;
+        }
+        
+        constexpr DynamicMatrixIterator& operator-=(const difference_type offset) noexcept
+        {
+            pos -= offset;
+            return *this;
+        }
+        
+        constexpr DynamicMatrixIterator operator-(const difference_type offset) const noexcept
+        {
+            auto copy{*this};
+            copy -= offset;
+            return copy;
+        }
+
+        constexpr friend DynamicMatrixIterator operator-(const difference_type offset, DynamicMatrixIterator next) noexcept
+        {
+            next -= offset;
+            return next;
+        }
+
+        constexpr reference operator[](const difference_type offset) const noexcept
+        {
+            return *(*this + offset);
         }
 
         typename Matrix::pointer pos;
@@ -135,6 +264,8 @@ namespace algo
         using const_pointer = std::allocator_traits<allocator_type>::const_pointer;
         using iterator = DynamicMatrixIterator<DynamicMatrix>;
         using const_iterator = DynamicMatrixConstIterator<DynamicMatrix>;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         constexpr DynamicMatrix()
             : rowsNumber{0}, colsNumber{0}
@@ -142,14 +273,14 @@ namespace algo
         {
         }
 
-        constexpr DynamicMatrix(size_type order)
+        constexpr DynamicMatrix(const size_type order)
             : rowsNumber{order}, colsNumber{order}
             , memory{}, storage{std::allocator_traits<allocator_type>::allocate(memory, rows() * cols())}
         {
             initialize_default(storage);
         }
 
-        constexpr DynamicMatrix(size_type rowsNumber, size_type colsNumber)
+        constexpr DynamicMatrix(const size_type rowsNumber, const size_type colsNumber)
             : rowsNumber{rowsNumber}, colsNumber{colsNumber}
             , memory{}, storage{std::allocator_traits<allocator_type>::allocate(memory, rows() * cols())}
         {
@@ -205,7 +336,7 @@ namespace algo
             return colsNumber;
         }
 
-        constexpr reference operator[](size_type row, size_type col)
+        constexpr reference operator[](const size_type row, const size_type col)
         {
             if(row >= rows())
             {
@@ -218,7 +349,7 @@ namespace algo
             return storage[row * rows() + col] ;
         }
         
-        constexpr const_reference operator[](size_type row, size_type col) const
+        constexpr const_reference operator[](const size_type row, const size_type col) const
         {   
             if(row >= rows())
             {
@@ -231,12 +362,12 @@ namespace algo
             return storage[row * rows() + col];
         }
 
-        constexpr reference at(size_type row, size_type col)
+        constexpr reference at(const size_type row, const size_type col)
         {
             return (*this)[row, col];
         }
 
-        constexpr const_reference at(size_type row, size_type col) const
+        constexpr const_reference at(const size_type row, const size_type col) const
         {
             return (*this)[row, col];
         }
@@ -251,7 +382,7 @@ namespace algo
             return data;
         }
 
-        constexpr void resize(size_type freshRows, size_type freshCols, bool preserve = true)
+        constexpr void resize(const size_type freshRows, const size_type freshCols, bool preserve = true)
         {
             pointer freshStorage{std::allocator_traits<allocator_type>::allocate(memory, freshRows * freshCols)};
             if(preserve)
@@ -292,7 +423,7 @@ namespace algo
             storage = std::allocator_traits<Allocator>::allocate(memory, 0);
         }
     private:
-        constexpr void copy_to_fresh_memory(pointer freshStorage, size_type freshRows, size_type freshCols)
+        constexpr void copy_to_fresh_memory(pointer freshStorage, const size_type freshRows, const size_type freshCols)
         {
             size_type minRows{std::min(rows(), freshRows)};
             size_type minCols{std::min(cols(), freshCols)};

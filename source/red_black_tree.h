@@ -122,7 +122,6 @@ namespace algo
         void clear()
         {
         }
-
     private:
         node_type** lookup_position(const key_type& key, node_type** parent, node_type** pos) const
         {
