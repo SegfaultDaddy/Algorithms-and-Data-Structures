@@ -20,16 +20,6 @@ namespace algo
         max_red_black_color,
     };
 
-    inline std::ostream & operator<<(std::ostream & out, RedBlackColor color) 
-    {
-        switch(color) 
-        {
-            case RedBlackColor::red: return out << "red";
-            case RedBlackColor::black: return out << "black";
-            default: return out << "Unimplemented enum: " << static_cast<std::uint64_t>(color);
-        }
-    }
-
     template<typename Key, 
              typename Type>
     struct RedBlackNode
